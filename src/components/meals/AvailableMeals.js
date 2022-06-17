@@ -1,45 +1,76 @@
 // Imports
-import React from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import MealItem from "./MealItem";
-
-// Data
-const DUMMY_MEALS = [
-	{
-	  id: 'm1',
-	  name: 'Sushi',
-	  description: 'Finest fish and veggies',
-	  price: 22.99
-	},
-	{
-	  id: 'm2',
-	  name: 'Schnitzel',
-	  description: 'A german specialty !',
-	  price: 16.5
-	},
-	{
-	  id: 'm3',
-	  name: 'Barbecue Burger',
-	  description: 'American, raw, meaty',
-	  price: 12.99
-	},
-	{
-	  id: 'm4',
-	  name: 'Green Bowl',
-	  description: 'Healthy... and green...',
-	  price: 18.99
-	}
-];
 
 // Component
 const AvailableMeals = () => {
 
-	// Return
+	// State
+	const [meals, setMeals] = useState([]);
+	const [isLoading, setIsLoading] = useState(true);
+	const [isError, setIsError] = useState();
+
+	// Get data
+	useEffect(() => {
+		// Fetch data from firebase
+		const fetchMeals = async() => {
+			try {
+				const response = await fetch('https://ms-food-order-default-rtdb.europe-west1.firebasedatabase.app/meals.json');
+				// Error ?
+				if (!response.ok){
+					throw new Error('Something went wrong, wait a while and try to refresh...');
+				}
+				const data = await response.json();
+				// Firebase send collection of objects
+				const mealsArray = [];
+				for (const key in data){
+					mealsArray.push({
+						id:key,
+						name:data[key].name,
+						description:data[key].description,
+						price:data[key].price
+					});
+				}
+				setMeals(mealsArray);
+				setTimeout(() => {
+					setIsLoading(false);
+				},100);
+			} catch (error){
+				setIsLoading(false);
+				setIsError(error.message);
+			}
+		};
+		// Init ,-)
+		/* We can also remove try/catch block from the function, and because 
+		async function returns a promise, catch the error on the function :
+		fetchMeals.catch((error) => {
+			setIsLoading(false);
+			setIsError(error.message);
+		}); */
+		fetchMeals();
+	},[]);
+
+	// Returns
+	if (isLoading){
+		return(
+			<Wrapper className="meals-loading">
+				<p>Loading...</p>
+			</Wrapper>
+		);
+	}
+	if (isError){
+		return(
+			<Wrapper className="meals-error">
+				<p>{ isError }</p>
+			</Wrapper>
+		);
+	}
 	return(
 		<Wrapper className="card">
 			<ul>
 				{
-					DUMMY_MEALS.map((meal) => {
+					meals.map((meal) => {
 						return <MealItem key={ meal.id } { ...meal }/>
 					})
 				}
@@ -55,6 +86,14 @@ const Wrapper = styled.section`
 	width: 90%;
 	margin: 2rem auto;
 	animation: meals-appear 1s ease-out forwards;
+	&.meals-loading{
+		text-align: center;
+		color: white;
+	}
+	&.meals-error{
+		text-align: center;
+		color: #f1c40f;
+	}
 	ul{
 		list-style: none;
 		margin: 0;
