@@ -50,7 +50,7 @@ const BackdropWrapper = styled.div`
 `;
 const ModalWrapper = styled.div`
 	position: fixed;
-	top: 20vh;
+	top: 15vh;
 	left: 5%;
 	width: 90%;
 	background-color: white;

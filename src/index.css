@@ -22,3 +22,16 @@ body {
 	border-radius: 14px;
 	background-color: white;
 }
+.successOrderBtn{
+	font: inherit;
+	cursor: pointer;
+	background-color: transparent;
+	border: 1px solid #8a2b06;
+	padding: 0.5rem 2rem;
+	border-radius: 25px;
+}
+.successOrderBtn:hover, .successOrderBtn:active{
+	background-color: #5a1a01;
+	border-color: #5a1a01;
+	color: white;
+}

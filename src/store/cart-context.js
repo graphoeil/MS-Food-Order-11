@@ -25,6 +25,9 @@ const CartProvider = ({ children }) => {
 	const removeItem = (id) => {
 		dispatch({ type:'REMOVE_ITEM', payload:id });
 	};
+	const clearCart = () => {
+		dispatch({ type:'CLEAR_CART' });
+	};
 	const openCart = () => {
 		dispatch({ type:'OPEN_CART' });
 	};
@@ -34,7 +37,7 @@ const CartProvider = ({ children }) => {
 
 	// Return
 	return <CartContext.Provider value={ {
-		...state, addItem, removeItem, openCart, closeCart
+		...state, addItem, removeItem, clearCart, openCart, closeCart
 	} }>{ children }</CartContext.Provider>
 
 };

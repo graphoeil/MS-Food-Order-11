@@ -1,15 +1,21 @@
 // Imports
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import { useCartContext } from "../../store/cart-context";
 import Modal from "../ui/Modal";
 import CartItem from "./CartItem";
+import Checkout from "./Checkout";
 
 // Component
 const Cart = ({ closeCart }) => {
 
+	// Show / hide order form
+	const [isCheckinOut, setIsCheckingOut] = useState(false);
+	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [didSubmit, setDidSubmit] = useState(false);
+
 	// Context
-	const { items, totalAmount, addItem, removeItem } = useCartContext();
+	const { items, totalAmount, addItem, removeItem, clearCart } = useCartContext();
 
 	// Add / remove item
 	const add = (item) => {
@@ -22,37 +28,78 @@ const Cart = ({ closeCart }) => {
 		removeItem(id);
 	};
 
+	// Order button
+	const handleOrder = () => {
+		setIsCheckingOut(true);
+	};
+
+	// Submit order to firebase
+	const submitOrder = async(userData) => {
+		setIsSubmitting(true);
+		// Send data
+		// In reality we must handle error with try/catch block
+		await fetch('https://ms-food-order-default-rtdb.europe-west1.firebasedatabase.app/orders.json',{
+			method:'POST',
+			body:JSON.stringify({
+				user:userData,
+				orderedItems:items
+			})
+		});
+		clearCart();
+		setIsSubmitting(false);
+		setDidSubmit(true);
+	};
+
 	// Return
 	return(
 		// We use props instead of contex with the modal, so we can use the modal
 		// component with other component (lightbox, ...), onClose props will run
 		// associate methods ,-)
+		// closeCart goes back to App, then goest back to context => function closeCart ,-)
 		<Modal onClose={ closeCart }>
-			<CartWrapper>
-				<ul>
-					{
-						items.map((item) => {
-							const { name, price, amount } = item;
-							return <CartItem key={ item.id } name={ name } price={ price }  amount={ amount } 
-								add={ () => { add(item); } } remove={ () => { remove(item.id); } }/>
-						})
-					}
-				</ul>
-				<div className="total">
-					<span>Total amount</span>
-					<span>${ totalAmount.toFixed(2) }</span>
-				</div>
-				<div className="actions">
-					<button className="button--alt" onClick={ closeCart }>
+			{
+				isSubmitting && <p>Sending order data...</p>
+			}
+			{
+				didSubmit && <div style={ { textAlign:'center' } }>
+					<p>Successfully sent the order!</p>
+					<button className="successOrderBtn" onClick={ closeCart }>
 						Close
 					</button>
-					{
-						items.length > 0 && <button className="button">
-							Order
-						</button>
-					}
 				</div>
-			</CartWrapper>
+			}
+			{
+				!isSubmitting && !didSubmit && <CartWrapper>
+					<ul>
+						{
+							items.map((item) => {
+								const { name, price, amount } = item;
+								return <CartItem key={ item.id } name={ name } price={ price }  amount={ amount } 
+									add={ () => { add(item); } } remove={ () => { remove(item.id); } }/>
+							})
+						}
+					</ul>
+					<div className="total">
+						<span>Total amount</span>
+						<span>${ totalAmount.toFixed(2) }</span>
+					</div>
+					{
+						isCheckinOut && <Checkout submitOrder={ submitOrder }/>
+					}
+					{
+						!isCheckinOut && <div className="actions">
+							<button className="button--alt" onClick={ closeCart }>
+								Close
+							</button>
+							{
+								items.length > 0 && <button onClick={ handleOrder } className="button">
+									Order
+								</button>
+							}
+						</div>
+					}
+				</CartWrapper>
+			}
 		</Modal>
 	);
 

@@ -58,6 +58,9 @@ const cartReducer = (state, action) => {
 		// Return
 		return { ...state, items:updatedItems, totalAmount:updatedTotalAmount };
 	}
+	if (action.type === 'CLEAR_CART'){
+		return { ...state, items:[], totalAmount:0 };
+	}
 	// Error
 	throw new Error(`No actions matches ${ action.type }`);
 };
